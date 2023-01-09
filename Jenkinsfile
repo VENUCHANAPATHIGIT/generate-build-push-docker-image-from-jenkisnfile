@@ -43,7 +43,7 @@ pipeline {
         stage('Copying the docker file to current directory') {
             steps {
                 sh 'cp ${WORKSPACE}/image-using-docker/Dockerfile ${WORKSPACE}/Dockerfile'
-                sh 'cp ${WORKSPACE}/image-using-docker/clock-script.py /${WORKSPACE}/clock-script.py'
+                sh 'cp ${WORKSPACE}/image-using-docker/clock-script.py ${WORKSPACE}/clock-script.py'
             }
         }
         stage('Building docker image from docker file') {
@@ -56,16 +56,26 @@ pipeline {
                 sh 'docker run -i --name myclock clockapp'
             }
         }
+        
+        stage('Pushing image to docker HUB') {
+            steps {
+                sh 'docker commit myclock binaryclock-app:latest'
+                sh 'docker tag clockapp:latest venuchanapathi1998/binaryclock-app:latest'
+                sh 'docker push venuchanapathi1998/binaryclock-app:latest'
+            }
+        }
+        
         stage('cleaning the loaded images') {
             steps {
                 sh 'docker stop $(docker ps -aq)'
                 sh 'docker rm $(docker ps -aq)'
-                sh 'docker rmi $(docker images -q)'
+                sh 'docker rmi -f $(docker images -q)'
             }
         }
         
-        stage('Environment variables') {
+        stage('testing env variables') {
             steps {
+                sh 'echo ${BUILD_NUMBER}'
                 sh 'echo ${WORKSPACE}'
             }
         }
